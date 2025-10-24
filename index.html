@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to GHG & Carbon Footprinting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #059669;
+            --primary-dark: #047857;
+            --primary-light: #10b981;
+            --accent-color: #3b82f6;
+            --bg-gradient-start: #f0fdf4;
+            --bg-gradient-end: #ecfdf5;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background-attachment: fixed;
+        }
+
+        body[dir="rtl"] {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link {
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            z-index: -1;
+            transition: width 0.4s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(5, 150, 105, 0.1);
+        }
+
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-5px);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .framework-item {
+            padding: 1rem 1.5rem;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 500;
+        }
+
+        .framework-item:hover {
+            background: #f0fdf4;
+            border-left-color: var(--primary-light);
+        }
+
+        .framework-item.active {
+            background: linear-gradient(90deg, #ecfdf5 0%, white 100%);
+            border-left-color: var(--primary-color);
+            color: var(--primary-dark);
+        }
+
+        .framework-content-panel {
+            display: none;
+        }
+
+        .framework-content-panel.active {
+            display: block;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .scope-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid;
+        }
+
+        .hero-title {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lang-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #e5e7eb;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+        }
+
+        .lang-switch.active {
+            background: var(--primary-color);
+        }
+
+        .lang-switch-button {
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateX(0);
+        }
+
+        .lang-switch.active .lang-switch-button {
+            transform: translateX(30px);
+        }
+
+        .audio-player {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .play-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .mobile-nav-select {
+            border-radius: 12px;
+            border: 2px solid var(--primary-color);
+            padding: 0.75rem;
+            font-weight: 500;
+            background: white;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* RTL Support */
+        [dir="rtl"] .nav-link::before {
+            left: auto;
+            right: 0;
+        }
+
+        [dir="rtl"] .framework-item {
+            border-left: none;
+            border-right: 4px solid transparent;
+        }
+
+        [dir="rtl"] .framework-item:hover {
+            border-left: none;
+            border-right-color: var(--primary-light);
+        }
+
+        [dir="rtl"] .framework-item.active {
+            border-left: none;
+            border-right-color: var(--primary-color);
+            background: linear-gradient(270deg, #ecfdf5 0%, white 100%);
+        }
+
+        [dir="rtl"] .scope-card {
+            border-left: none;
+            border-right: 6px solid;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold hero-title">
+                        <span data-en="GHG & Carbon Guide">GHG & Carbon Guide</span>
+                        <span data-ar="دليل الغازات الدفيئة والكربون" class="hidden">دليل الغازات الدفيئة والكربون</span>
+                    </h1>
+                </div>
+
+                <div class="hidden lg:flex items-center space-x-2 rtl:space-x-reverse">
+                    <a class="nav-link active" data-target="home">
+                        <span data-en="Home">Home</span>
+                        <span data-ar="الرئيسية" class="hidden">الرئيسية</span>
+                    </a>
+                    <a class="nav-link" data-target="science">
+                        <span data-en="The Science">The Science</span>
+                        <span data-ar="العلوم" class="hidden">العلوم</span>
+                    </a>
+                    <a class="nav-link" data-target="frameworks">
+                        <span data-en="Frameworks">Frameworks</span>
+                        <span data-ar="الأطر العالمية" class="hidden">الأطر العالمية</span>
+                    </a>
+                    <a class="nav-link" data-target="economics">
+                        <span data-en="Economics">Economics</span>
+                        <span data-ar="الاقتصاد" class="hidden">الاقتصاد</span>
+                    </a>
+                    <a class="nav-link" data-target="calculation">
+                        <span data-en="Calculation">Calculation</span>
+                        <span data-ar="الحسابات" class="hidden">الحسابات</span>
+                    </a>
+                    <a class="nav-link" data-target="petroleum">
+                        <span data-en="Petroleum">Petroleum</span>
+                        <span data-ar="النفط" class="hidden">النفط</span>
+                    </a>
+                    <a class="nav-link" data-target="egypt">
+                        <span data-en="Egypt">Egypt</span>
+                        <span data-ar="مصر" class="hidden">مصر</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium" id="lang-label-en">EN</span>
+                        <div class="lang-switch" id="langSwitch" onclick="toggleLanguage()">
+                            <div class="lang-switch-button"></div>
+                        </div>
+                        <span class="text-sm font-medium" id="lang-label-ar">AR</span>
+                    </div>
+                </div>
+
+                <div class="lg:hidden">
+                    <select id="mobile-nav" class="mobile-nav-select">
+                        <option value="home" data-en="Home" data-ar="الرئيسية">Home</option>
+                        <option value="science" data-en="The Science" data-ar="العلوم">The Science</option>
+                        <option value="frameworks" data-en="Frameworks" data-ar="الأطر العالمية">Frameworks</option>
+                        <option value="economics" data-en="Economics" data-ar="الاقتصاد">Economics</option>
+                        <option value="calculation" data-en="Calculation" data-ar="الحسابات">Calculation</option>
+                        <option value="petroleum" data-en="Petroleum" data-ar="النفط">Petroleum</option>
+                        <option value="egypt" data-en="Egypt" data-ar="مصر">Egypt</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Resources Section (PDF & Audio) -->
+        <div class="mb-12 card">
+            <h2 class="text-2xl font-bold mb-6 hero-title" data-en="Resources & Media" data-ar="الموارد والوسائط">Resources & Media</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- PDF Download -->
+                <div class="text-center">
+                    <a href="Greenhouse Gas Emissions Explained_ A Guide.pdf" download class="download-btn">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span data-en="Download PDF Report" data-ar="تحميل تقرير PDF">Download PDF Report</span>
+                    </a>
+                </div>
+
+                <!-- English Audio -->
+                <div class="audio-player">
+                    <button class="play-button" onclick="toggleAudio('audioEN')">
+                        <svg id="playIconEN" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg id="pauseIconEN" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                        </svg>
+                    </button>
+                    <div class="flex-1">
+                        <p class="font-semibold" data-en="English Audio Guide" data-ar="الدليل الصوتي الإنجليزي">English Audio Guide</p>
+                        <audio id="audioEN" src="Climate_Action_Architecture__Connecting_the_Physics,_Global_Pol.m4a"></audio>
+                        <div class="w-full bg-gray-300 rounded-full h-2 mt-2">
+                            <div id="progressEN" class="bg-emerald-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arabic Audio -->
+                <div class="audio-player">
+                    <button class="play-button" onclick="toggleAudio('audioAR')">
+                        <svg id="playIconAR" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg id="pauseIconAR" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                        </svg>
+                    </button>
+                    <div class="flex-1">
+                        <p class="font-semibold" data-en="Arabic Audio Guide" data-ar="الدليل الصوتي العربي">Arabic Audio Guide</p>
+                        <audio id="audioAR" src="البصمة_الكربونية_وتغير_المناخ__ما_وراء_النطاق_3_وفجوة_الطموح_(ب.m4a"></audio>
+                        <div class="w-full bg-gray-300 rounded-full h-2 mt-2">
+                            <div id="progressAR" class="bg-emerald-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Section -->
+        <section id="home" class="content-section active">
+            <div class="card mb-8">
+                <h2 class="text-4xl md:text-5xl font-bold hero-title mb-6">
+                    <span data-en="Understanding Greenhouse Gases & Carbon Footprints" data-ar="فهم الغازات الدفيئة والبصمة الكربونية">Understanding Greenhouse Gases & Carbon Footprints</span>
+                </h2>
+                <p class="text-lg mb-6 text-gray-600 leading-relaxed">
+                    <span data-en="Welcome to this interactive guide. If you're new to the topic of climate change, greenhouse gases (GHGs), and carbon calculations, you're in the right place. This tool is designed to walk you through the entire story, from the basic science to the complex world of global policy, carbon accounting, and specific industry challenges." data-ar="مرحباً بك في هذا الدليل التفاعلي. إذا كنت جديداً على موضوع تغير المناخ والغازات الدفيئة وحسابات الكربون، فأنت في المكان الصحيح. تم تصميم هذه الأداة لتوجيهك خلال القصة بأكملها، من العلوم الأساسية إلى عالم السياسات العالمية المعقد ومحاسبة الكربون والتحديات الصناعية المحددة.">
+                        Welcome to this interactive guide. If you're new to the topic of climate change, greenhouse gases (GHGs), and carbon calculations, you're in the right place. This tool is designed to walk you through the entire story, from the basic science to the complex world of global policy, carbon accounting, and specific industry challenges.
+                    </span>
+                </p>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    <span data-en="Use the navigation bar above to explore the key themes. We'll start with the fundamental science, move into the global agreements and standards that shape climate action, understand the economic mechanisms being used, and then dive into how calculations are actually performed." data-ar="استخدم شريط التنقل أعلاه لاستكشاف المواضيع الرئيسية. سنبدأ بالعلوم الأساسية، ثم ننتقل إلى الاتفاقيات والمعايير العالمية التي تشكل العمل المناخي، ونفهم الآليات الاقتصادية المستخدمة، ثم نتعمق في كيفية إجراء الحسابات فعلياً.">
+                        Use the navigation bar above to explore the key themes. We'll start with the fundamental science, move into the global agreements and standards that shape climate action, understand the economic mechanisms being used, and then dive into how calculations are actually performed.
+                    </span>
+                </p>
+            </div>
+
+            <!-- Key Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card text-center">
+                    <div class="stat-number">421</div>
+                    <p class="text-gray-600 font-semibold mt-2">
+                        <span data-en="ppm CO₂ in 2024" data-ar="جزء في المليون من CO₂ في 2024">ppm CO₂ in 2024</span>
+                    </p>
+                </div>
+                <div class="card text-center">
+                    <div class="stat-number">1.2°C</div>
+                    <p class="text-gray-600 font-semibold mt-2">
+                        <span data-en="Global Temperature Rise" data-ar="ارتفاع درجة الحرارة العالمية">Global Temperature Rise</span>
+                    </p>
+                </div>
+                <div class="card text-center">
+                    <div class="stat-number">42%</div>
+                    <p class="text-gray-600 font-semibold mt-2">
+                        <span data-en="Egypt's Renewable Target 2035" data-ar="هدف الطاقة المتجددة لمصر 2035">Egypt's Renewable Target 2035</span>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Science Section -->
+        <section id="science" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="The Science: What & Why?" data-ar="العلوم: ماذا ولماذا؟">The Science: What & Why?</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="This section covers the fundamentals. We define what Greenhouse Gases are, explain why they are dangerous to the planet through the greenhouse effect, and present the core scientific evidence that demonstrates the reality and urgency of climate change." data-ar="يغطي هذا القسم الأساسيات. نحدد ما هي الغازات الدفيئة، ونشرح لماذا هي خطيرة على الكوكب من خلال تأثير الدفيئة، ونقدم الأدلة العلمية الأساسية التي تثبت حقيقة وإلحاح تغير المناخ.">
+                    This section covers the fundamentals. We define what Greenhouse Gases are, explain why they are dangerous to the planet through the greenhouse effect, and present the core scientific evidence that demonstrates the reality and urgency of climate change.
+                </span>
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="What are Greenhouse Gases?" data-ar="ما هي الغازات الدفيئة؟">What are Greenhouse Gases?</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Greenhouse gases are gases in Earth's atmosphere that trap heat. The main GHGs are:" data-ar="الغازات الدفيئة هي غازات في الغلاف الجوي للأرض تحبس الحرارة. الغازات الدفيئة الرئيسية هي:">
+                            Greenhouse gases are gases in Earth's atmosphere that trap heat. The main GHGs are:
+                        </span>
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">•</span>
+                            <span>
+                                <strong data-en="Carbon Dioxide (CO₂):" data-ar="ثاني أكسيد الكربون (CO₂):">Carbon Dioxide (CO₂):</strong>
+                                <span data-en="Released through burning fossil fuels and deforestation." data-ar="ينبعث من خلال حرق الوقود الأحفوري وإزالة الغابات."> Released through burning fossil fuels and deforestation.</span>
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">•</span>
+                            <span>
+                                <strong data-en="Methane (CH₄):" data-ar="الميثان (CH₄):">Methane (CH₄):</strong>
+                                <span data-en="Emitted from livestock, agriculture, and fossil fuel extraction." data-ar="ينبعث من الثروة الحيوانية والزراعة واستخراج الوقود الأحفوري."> Emitted from livestock, agriculture, and fossil fuel extraction.</span>
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">•</span>
+                            <span>
+                                <strong data-en="Nitrous Oxide (N₂O):" data-ar="أكسيد النيتروز (N₂O):">Nitrous Oxide (N₂O):</strong>
+                                <span data-en="From agricultural fertilizers and industrial activities." data-ar="من الأسمدة الزراعية والأنشطة الصناعية."> From agricultural fertilizers and industrial activities.</span>
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-600 font-bold">•</span>
+                            <span>
+                                <strong data-en="Fluorinated Gases:" data-ar="الغازات المفلورة:">Fluorinated Gases:</strong>
+                                <span data-en="Synthetic gases from industrial processes." data-ar="غازات صناعية من العمليات الصناعية."> Synthetic gases from industrial processes.</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="Rising CO₂ Levels" data-ar="ارتفاع مستويات CO₂">Rising CO₂ Levels</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Atmospheric CO₂ measured at Mauna Loa Observatory showing human impact." data-ar="CO₂ في الغلاف الجوي تم قياسه في مرصد ماونا لوا يظهر التأثير البشري.">
+                            Atmospheric CO₂ measured at Mauna Loa Observatory showing human impact.
+                        </span>
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="co2Chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">
+                        <span data-en="Why Are They Dangerous?" data-ar="لماذا هي خطيرة؟">Why Are They Dangerous?</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="The enhanced greenhouse effect traps too much heat, leading to global warming and climate change. Consequences include:" data-ar="يحبس تأثير الدفيئة المعزز الكثير من الحرارة، مما يؤدي إلى الاحتباس الحراري وتغير المناخ. تشمل العواقب:">
+                            The enhanced greenhouse effect traps too much heat, leading to global warming and climate change. Consequences include:
+                        </span>
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li data-en="• Rising sea levels" data-ar="• ارتفاع مستويات سطح البحر">• Rising sea levels</li>
+                        <li data-en="• Extreme weather events" data-ar="• أحداث مناخية متطرفة">• Extreme weather events</li>
+                        <li data-en="• Disruption to agriculture" data-ar="• اضطراب الزراعة">• Disruption to agriculture</li>
+                        <li data-en="• Loss of biodiversity" data-ar="• فقدان التنوع البيولوجي">• Loss of biodiversity</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">
+                        <span data-en="Global Temperature Rise" data-ar="ارتفاع درجة الحرارة العالمية">Global Temperature Rise</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Global temperature anomaly showing significant warming trend." data-ar="شذوذ درجة الحرارة العالمية يظهر اتجاه احترار كبير.">
+                            Global temperature anomaly showing significant warming trend.
+                        </span>
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Frameworks Section -->
+        <section id="frameworks" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="Global Frameworks & Standards" data-ar="الأطر والمعايير العالمية">Global Frameworks & Standards</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="International frameworks, protocols, and standards to measure, report, and reduce emissions. Click each item to learn more." data-ar="الأطر والبروتوكولات والمعايير الدولية لقياس الانبعاثات والإبلاغ عنها وخفضها. انقر على كل عنصر لمعرفة المزيد.">
+                    International frameworks, protocols, and standards to measure, report, and reduce emissions. Click each item to learn more.
+                </span>
+            </p>
+
+            <div class="card">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200">
+                        <nav class="flex flex-col">
+                            <button class="framework-item active" data-target="fw-ipcc">
+                                <span data-en="IPCC" data-ar="الهيئة الحكومية الدولية">IPCC</span>
+                            </button>
+                            <button class="framework-item" data-target="fw-paris">
+                                <span data-en="Paris Agreement & NDCs" data-ar="اتفاقية باريس والمساهمات المحددة وطنياً">Paris Agreement & NDCs</span>
+                            </button>
+                            <button class="framework-item" data-target="fw-ghg-protocol">
+                                <span data-en="GHG Protocol" data-ar="بروتوكول الغازات الدفيئة">GHG Protocol</span>
+                            </button>
+                            <button class="framework-item" data-target="fw-iso">
+                                <span data-en="ISO 14064" data-ar="آيزو 14064">ISO 14064</span>
+                            </button>
+                        </nav>
+                    </div>
+                    <div class="md:w-2/3 p-6 md:p-8">
+                        <div id="fw-ipcc" class="framework-content-panel active">
+                            <h3 class="text-3xl font-bold text-emerald-600 mb-4">
+                                <span data-en="IPCC (Intergovernmental Panel on Climate Change)" data-ar="الهيئة الحكومية الدولية المعنية بتغير المناخ">IPCC (Intergovernmental Panel on Climate Change)</span>
+                            </h3>
+                            <p class="mb-4 text-gray-600 leading-relaxed">
+                                <span data-en="The IPCC is the United Nations body for assessing climate science. Established in 1988, it synthesizes thousands of scientific papers to provide policymakers with regular assessments on climate change, implications, and mitigation options." data-ar="الهيئة الحكومية الدولية المعنية بتغير المناخ هي هيئة الأمم المتحدة لتقييم علوم المناخ. تأسست في عام 1988، وتقوم بتجميع آلاف الأوراق العلمية لتزويد صانعي السياسات بتقييمات منتظمة حول تغير المناخ وآثاره وخيارات التخفيف.">
+                                    The IPCC is the United Nations body for assessing climate science. Established in 1988, it synthesizes thousands of scientific papers to provide policymakers with regular assessments on climate change, implications, and mitigation options.
+                                </span>
+                            </p>
+                        </div>
+                        <div id="fw-paris" class="framework-content-panel">
+                            <h3 class="text-3xl font-bold text-emerald-600 mb-4">
+                                <span data-en="Paris Agreement & NDCs" data-ar="اتفاقية باريس والمساهمات المحددة وطنياً">Paris Agreement & NDCs</span>
+                            </h3>
+                            <p class="mb-4 text-gray-600 leading-relaxed">
+                                <span data-en="The Paris Agreement (2015) aims to keep global temperature rise well below 2°C and pursue efforts to limit it to 1.5°C. Countries submit Nationally Determined Contributions (NDCs) outlining their climate action plans." data-ar="تهدف اتفاقية باريس (2015) إلى إبقاء ارتفاع درجة الحرارة العالمية أقل بكثير من 2 درجة مئوية والسعي لتحديدها عند 1.5 درجة مئوية. تقدم الدول المساهمات المحددة وطنياً التي تحدد خطط عملها المناخية.">
+                                    The Paris Agreement (2015) aims to keep global temperature rise well below 2°C and pursue efforts to limit it to 1.5°C. Countries submit Nationally Determined Contributions (NDCs) outlining their climate action plans.
+                                </span>
+                            </p>
+                        </div>
+                        <div id="fw-ghg-protocol" class="framework-content-panel">
+                            <h3 class="text-3xl font-bold text-emerald-600 mb-4">
+                                <span data-en="GHG Protocol" data-ar="بروتوكول الغازات الدفيئة">GHG Protocol</span>
+                            </h3>
+                            <p class="mb-4 text-gray-600 leading-relaxed">
+                                <span data-en="The most widely used international accounting standards for businesses and governments to measure and manage GHG emissions. It provides the 'rulebook' for carbon accounting, categorizing emissions into three Scopes." data-ar="المعايير المحاسبية الدولية الأكثر استخداماً للشركات والحكومات لقياس وإدارة انبعاثات الغازات الدفيئة. يوفر 'كتاب القواعد' لمحاسبة الكربون، مع تصنيف الانبعاثات إلى ثلاثة نطاقات.">
+                                    The most widely used international accounting standards for businesses and governments to measure and manage GHG emissions. It provides the 'rulebook' for carbon accounting, categorizing emissions into three Scopes.
+                                </span>
+                            </p>
+                        </div>
+                        <div id="fw-iso" class="framework-content-panel">
+                            <h3 class="text-3xl font-bold text-emerald-600 mb-4">
+                                <span data-en="ISO 14064" data-ar="آيزو 14064">ISO 14064</span>
+                            </h3>
+                            <p class="mb-4 text-gray-600 leading-relaxed">
+                                <span data-en="International standards for GHG accounting and verification. ISO 14064-1 covers organization-level quantification, ISO 14064-2 covers project-level, and ISO 14064-3 covers verification of GHG statements." data-ar="المعايير الدولية لمحاسبة الغازات الدفيئة والتحقق منها. يغطي آيزو 14064-1 القياس على مستوى المنظمة، ويغطي آيزو 14064-2 مستوى المشروع، ويغطي آيزو 14064-3 التحقق من بيانات الغازات الدفيئة.">
+                                    International standards for GHG accounting and verification. ISO 14064-1 covers organization-level quantification, ISO 14064-2 covers project-level, and ISO 14064-3 covers verification of GHG statements.
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Economics Section -->
+        <section id="economics" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="Carbon Economics: Markets & Mechanisms" data-ar="اقتصاديات الكربون: الأسواق والآليات">Carbon Economics: Markets & Mechanisms</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="Economic mechanisms create financial incentives to reduce emissions by putting a price on carbon." data-ar="تخلق الآليات الاقتصادية حوافز مالية لخفض الانبعاثات من خلال وضع سعر للكربون.">
+                    Economic mechanisms create financial incentives to reduce emissions by putting a price on carbon.
+                </span>
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="Carbon Credits (Offsetting)" data-ar="أرصدة الكربون (التعويض)">Carbon Credits (Offsetting)</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="A carbon credit represents the avoidance or removal of one tonne of CO₂e from the atmosphere. Companies can purchase credits to offset their emissions." data-ar="يمثل رصيد الكربون تجنب أو إزالة طن واحد من مكافئ CO₂ من الغلاف الجوي. يمكن للشركات شراء الأرصدة لتعويض انبعاثاتها.">
+                            A carbon credit represents the avoidance or removal of one tonne of CO₂e from the atmosphere. Companies can purchase credits to offset their emissions.
+                        </span>
+                    </p>
+                    <div class="bg-gradient-to-r from-red-50 to-emerald-50 p-6 rounded-xl mt-4">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <div class="text-center">
+                                <div class="text-4xl mb-2">🏭</div>
+                                <p class="font-semibold text-sm" data-en="Company Emits" data-ar="الشركة تنبعث">Company Emits</p>
+                            </div>
+                            <div class="text-3xl text-emerald-600">→</div>
+                            <div class="text-center">
+                                <div class="text-4xl mb-2">🌳</div>
+                                <p class="font-semibold text-sm" data-en="Buys Credits" data-ar="شراء الأرصدة">Buys Credits</p>
+                            </div>
+                            <div class="text-3xl text-gray-500">=</div>
+                            <div class="text-center">
+                                <div class="text-4xl mb-2">🌍</div>
+                                <p class="font-semibold text-sm" data-en="Carbon Neutral" data-ar="محايد الكربون">Carbon Neutral</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-blue-700">
+                        <span data-en="CBAM (Carbon Border Adjustment)" data-ar="آلية تسوية حدود الكربون">CBAM (Carbon Border Adjustment)</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="The EU's carbon tariff on carbon-intensive imports (steel, cement, aluminum). It prevents 'carbon leakage' by requiring importers to pay for carbon emissions embedded in their products." data-ar="رسوم الكربون التي يفرضها الاتحاد الأوروبي على الواردات كثيفة الكربون (الفولاذ، الأسمنت، الألمنيوم). تمنع 'تسرب الكربون' من خلال مطالبة المستوردين بدفع ثمن انبعاثات الكربون المدمجة في منتجاتهم.">
+                            The EU's carbon tariff on carbon-intensive imports (steel, cement, aluminum). It prevents 'carbon leakage' by requiring importers to pay for carbon emissions embedded in their products.
+                        </span>
+                    </p>
+                    <div class="bg-blue-50 p-4 rounded-xl mt-4">
+                        <p class="font-semibold text-blue-900 mb-2">
+                            <span data-en="Impact on Trade:" data-ar="التأثير على التجارة:">Impact on Trade:</span>
+                        </p>
+                        <p class="text-gray-600 text-sm">
+                            <span data-en="Forces exporters to accurately measure and report carbon footprints or face significant border taxes." data-ar="يجبر المصدرين على قياس البصمات الكربونية والإبلاغ عنها بدقة أو مواجهة ضرائب حدودية كبيرة.">
+                                Forces exporters to accurately measure and report carbon footprints or face significant border taxes.
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculation Section -->
+        <section id="calculation" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="How to Calculate a Carbon Footprint" data-ar="كيفية حساب البصمة الكربونية">How to Calculate a Carbon Footprint</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="Carbon footprint calculation is based on: Activity Data × Emission Factor = GHG Emissions" data-ar="يعتمد حساب البصمة الكربونية على: بيانات النشاط × عامل الانبعاث = انبعاثات الغازات الدفيئة">
+                    Carbon footprint calculation is based on: <strong>Activity Data × Emission Factor = GHG Emissions</strong>
+                </span>
+            </p>
+
+            <div class="card mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                    <span data-en="The Core Formula" data-ar="الصيغة الأساسية">The Core Formula</span>
+                </h3>
+                <ul class="space-y-4">
+                    <li>
+                        <strong class="text-lg" data-en="Activity Data:" data-ar="بيانات النشاط:">Activity Data:</strong>
+                        <span class="text-gray-600" data-en="Quantitative measure of the activity (e.g., litres of diesel, kWh of electricity)" data-ar="قياس كمي للنشاط (مثل لترات الديزل، كيلووات ساعة من الكهرباء)">
+                            Quantitative measure of the activity (e.g., litres of diesel, kWh of electricity)
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Emission Factor:" data-ar="عامل الانبعاث:">Emission Factor:</strong>
+                        <span class="text-gray-600" data-en="Carbon intensity per unit of activity (e.g., 2.68 kg CO₂e per litre of diesel)" data-ar="كثافة الكربون لكل وحدة نشاط (مثل 2.68 كجم مكافئ CO₂ لكل لتر ديزل)">
+                            Carbon intensity per unit of activity (e.g., 2.68 kg CO₂e per litre of diesel)
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Example:" data-ar="مثال:">Example:</strong>
+                        <span class="text-gray-600">1,000 litres × 2.68 kg CO₂e/litre = 2,680 kg CO₂e</span>
+                    </li>
+                </ul>
+            </div>
+
+            <h3 class="text-3xl font-bold text-center mb-6 hero-title">
+                <span data-en="Understanding Scopes 1, 2, & 3" data-ar="فهم النطاقات 1 و 2 و 3">Understanding Scopes 1, 2, & 3</span>
+            </h3>
+            <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
+                <span data-en="The GHG Protocol divides emissions into three scopes to prevent double-counting and clarify what an organization controls versus influences." data-ar="يقسم بروتوكول الغازات الدفيئة الانبعاثات إلى ثلاثة نطاقات لمنع العد المزدوج وتوضيح ما تسيطر عليه المنظمة مقابل ما تؤثر عليه.">
+                    The GHG Protocol divides emissions into three scopes to prevent double-counting and clarify what an organization controls versus influences.
+                </span>
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="scope-card border-red-500">
+                    <span class="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold mb-3">
+                        <span data-en="SCOPE 1" data-ar="النطاق 1">SCOPE 1</span>
+                    </span>
+                    <h4 class="text-xl font-bold mb-2">
+                        <span data-en="Direct Emissions" data-ar="الانبعاثات المباشرة">Direct Emissions</span>
+                    </h4>
+                    <p class="text-gray-600 mb-4">
+                        <span data-en="Emissions from sources owned or controlled by the organization." data-ar="الانبعاثات من المصادر المملوكة أو الخاضعة لسيطرة المنظمة.">
+                            Emissions from sources owned or controlled by the organization.
+                        </span>
+                    </p>
+                    <p class="font-semibold mb-2" data-en="Examples:" data-ar="أمثلة:">Examples:</p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm">
+                        <li data-en="Company-owned vehicles" data-ar="المركبات المملوكة للشركة">Company-owned vehicles</li>
+                        <li data-en="On-site boilers/furnaces" data-ar="الغلايات/الأفران في الموقع">On-site boilers/furnaces</li>
+                        <li data-en="Fugitive emissions (leaks)" data-ar="الانبعاثات الهاربة (التسريبات)">Fugitive emissions (leaks)</li>
+                    </ul>
+                </div>
+
+                <div class="scope-card border-blue-500">
+                    <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold mb-3">
+                        <span data-en="SCOPE 2" data-ar="النطاق 2">SCOPE 2</span>
+                    </span>
+                    <h4 class="text-xl font-bold mb-2">
+                        <span data-en="Purchased Energy" data-ar="الطاقة المشتراة">Purchased Energy</span>
+                    </h4>
+                    <p class="text-gray-600 mb-4">
+                        <span data-en="Indirect emissions from purchased electricity, steam, heat, or cooling." data-ar="الانبعاثات غير المباشرة من الكهرباء أو البخار أو الحرارة أو التبريد المشتراة.">
+                            Indirect emissions from purchased electricity, steam, heat, or cooling.
+                        </span>
+                    </p>
+                    <p class="font-semibold mb-2" data-en="Example:" data-ar="مثال:">Example:</p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm">
+                        <li data-en="Electricity from the grid" data-ar="الكهرباء من الشبكة">Electricity from the grid</li>
+                    </ul>
+                    <p class="mt-4 text-sm text-gray-600">
+                        <span data-en="Emissions occur at the power plant but are attributed to the consumer." data-ar="تحدث الانبعاثات في محطة الطاقة ولكنها تُنسب إلى المستهلك.">
+                            Emissions occur at the power plant but are attributed to the consumer.
+                        </span>
+                    </p>
+                </div>
+
+                <div class="scope-card border-gray-500">
+                    <span class="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-bold mb-3">
+                        <span data-en="SCOPE 3" data-ar="النطاق 3">SCOPE 3</span>
+                    </span>
+                    <h4 class="text-xl font-bold mb-2">
+                        <span data-en="Value Chain" data-ar="سلسلة القيمة">Value Chain</span>
+                    </h4>
+                    <p class="text-gray-600 mb-4">
+                        <span data-en="All other indirect emissions in the organization's value chain." data-ar="جميع الانبعاثات غير المباشرة الأخرى في سلسلة قيمة المنظمة.">
+                            All other indirect emissions in the organization's value chain.
+                        </span>
+                    </p>
+                    <p class="font-semibold mb-2" data-en="Examples:" data-ar="أمثلة:">Examples:</p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm">
+                        <li data-en="Purchased goods/services" data-ar="السلع/الخدمات المشتراة">Purchased goods/services</li>
+                        <li data-en="Business travel" data-ar="السفر للأعمال">Business travel</li>
+                        <li data-en="Employee commuting" data-ar="تنقل الموظفين">Employee commuting</li>
+                        <li data-en="Use of sold products" data-ar="استخدام المنتجات المباعة">Use of sold products</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-8">
+                <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                    <span data-en="Reliable Sources for Emission Factors" data-ar="مصادر موثوقة لعوامل الانبعاث">Reliable Sources for Emission Factors</span>
+                </h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-2">
+                        <span class="text-emerald-600 font-bold">•</span>
+                        <span>
+                            <strong>GHG Protocol:</strong>
+                            <a href="https://ghgprotocol.org" target="_blank" class="text-emerald-600 hover:underline">ghgprotocol.org</a>
+                        </span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-emerald-600 font-bold">•</span>
+                        <span>
+                            <strong data-en="IPCC Emission Factor Database:" data-ar="قاعدة بيانات عوامل الانبعاث IPCC:">IPCC Emission Factor Database:</strong>
+                            <a href="https://www.ipcc-nggip.iges.or.jp/EFDB/" target="_blank" class="text-emerald-600 hover:underline">ipcc-nggip.iges.or.jp/EFDB</a>
+                        </span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-emerald-600 font-bold">•</span>
+                        <span data-en="Government Agencies: EPA (US), DEFRA (UK)" data-ar="الوكالات الحكومية: EPA (الولايات المتحدة)، DEFRA (المملكة المتحدة)">
+                            Government Agencies: EPA (US), DEFRA (UK)
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Petroleum Section -->
+        <section id="petroleum" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="Industry Focus: Petroleum Refining" data-ar="التركيز الصناعي: تكرير النفط">Industry Focus: Petroleum Refining</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="Petroleum refining is one of the most energy- and emissions-intensive sectors globally, requiring massive heat and energy for distillation and conversion processes." data-ar="تعد صناعة تكرير النفط واحدة من أكثر القطاعات كثافة في استخدام الطاقة والانبعاثات عالمياً، حيث تتطلب حرارة وطاقة هائلة لعمليات التقطير والتحويل.">
+                    Petroleum refining is one of the most energy- and emissions-intensive sectors globally, requiring massive heat and energy for distillation and conversion processes.
+                </span>
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="Global Emissions by Sector" data-ar="الانبعاثات العالمية حسب القطاع">Global Emissions by Sector</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Energy (including refining) is the largest contributor to global GHG emissions." data-ar="الطاقة (بما في ذلك التكرير) هي أكبر مساهم في انبعاثات الغازات الدفيئة العالمية.">
+                            Energy (including refining) is the largest contributor to global GHG emissions.
+                        </span>
+                    </p>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="Refinery Emission Sources" data-ar="مصادر انبعاثات المصفاة">Refinery Emission Sources</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Breakdown of typical emission sources in petroleum refineries." data-ar="تفصيل مصادر الانبعاث النموذجية في مصافي النفط.">
+                            Breakdown of typical emission sources in petroleum refineries.
+                        </span>
+                    </p>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="refineryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-8">
+                <h3 class="text-2xl font-bold mb-4 text-red-600">
+                    <span data-en="Key Emission Sources in Refineries" data-ar="مصادر الانبعاث الرئيسية في المصافي">Key Emission Sources in Refineries</span>
+                </h3>
+                <ul class="space-y-4">
+                    <li>
+                        <strong class="text-lg" data-en="Process Heaters & Boilers:" data-ar="سخانات العمليات والغلايات:">Process Heaters & Boilers:</strong>
+                        <span class="text-gray-600" data-en="Largest source - burn fuel for heating crude oil (Scope 1)." data-ar="أكبر مصدر - حرق الوقود لتسخين النفط الخام (النطاق 1).">
+                            Largest source - burn fuel for heating crude oil (Scope 1).
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Fluid Catalytic Cracker (FCC):" data-ar="وحدة التكسير التحفيزي السائل:">Fluid Catalytic Cracker (FCC):</strong>
+                        <span class="text-gray-600" data-en="Cracks large molecules into smaller ones, releasing large amounts of CO₂." data-ar="تكسر الجزيئات الكبيرة إلى جزيئات أصغر، مما يطلق كميات كبيرة من CO₂.">
+                            Cracks large molecules into smaller ones, releasing large amounts of CO₂.
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Hydrogen Production (SMR):" data-ar="إنتاج الهيدروجين:">Hydrogen Production (SMR):</strong>
+                        <span class="text-gray-600" data-en="Steam Methane Reforming produces H₂ and CO₂ - major process emission." data-ar="يُنتج إعادة تشكيل الميثان بالبخار H₂ و CO₂ - انبعاثات عملية رئيسية.">
+                            Steam Methane Reforming produces H₂ and CO₂ - major process emission.
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Flaring & Fugitives:" data-ar="الحرق والتسريبات:">Flaring & Fugitives:</strong>
+                        <span class="text-gray-600" data-en="Safety flares and methane leaks from pipes and valves." data-ar="شعلات الأمان وتسريبات الميثان من الأنابيب والصمامات.">
+                            Safety flares and methane leaks from pipes and valves.
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Egypt Section -->
+        <section id="egypt" class="content-section">
+            <h2 class="text-4xl font-bold hero-title mb-6">
+                <span data-en="Egypt's Role & Vision" data-ar="دور مصر ورؤيتها">Egypt's Role & Vision</span>
+            </h2>
+            <p class="text-lg mb-8 text-gray-600">
+                <span data-en="Egypt is playing a pivotal role in the global climate landscape as both a vulnerable nation and an emerging leader in the region's energy transition." data-ar="تلعب مصر دوراً محورياً في المشهد المناخي العالمي كدولة معرضة للخطر وكقائد ناشئ في التحول نحو الطاقة في المنطقة.">
+                    Egypt is playing a pivotal role in the global climate landscape as both a vulnerable nation and an emerging leader in the region's energy transition.
+                </span>
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="National Strategy (NCCS 2050)" data-ar="الاستراتيجية الوطنية (NCCS 2050)">National Strategy (NCCS 2050)</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Egypt's climate action is guided by its National Climate Change Strategy 2050 and NDC, linking climate action to sustainable development goals (Egypt Vision 2030)." data-ar="يُوجه العمل المناخي لمصر استراتيجيتها الوطنية لتغير المناخ 2050 والمساهمات المحددة وطنياً، مع ربط العمل المناخي بأهداف التنمية المستدامة (رؤية مصر 2030).">
+                            Egypt's climate action is guided by its National Climate Change Strategy 2050 and NDC, linking climate action to sustainable development goals (Egypt Vision 2030).
+                        </span>
+                    </p>
+                    <p class="font-semibold mb-2" data-en="Key Goals:" data-ar="الأهداف الرئيسية:">Key Goals:</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li data-en="Low-carbon development path" data-ar="مسار تنمية منخفض الكربون">Low-carbon development path</li>
+                        <li data-en="Enhanced climate adaptation" data-ar="تعزيز التكيف مع المناخ">Enhanced climate adaptation</li>
+                        <li data-en="Improved climate finance" data-ar="تحسين التمويل المناخي">Improved climate finance</li>
+                        <li data-en="Technology transfer" data-ar="نقل التكنولوجيا">Technology transfer</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                        <span data-en="Renewable Energy Target" data-ar="هدف الطاقة المتجددة">Renewable Energy Target</span>
+                    </h3>
+                    <p class="mb-4 text-gray-600">
+                        <span data-en="Egypt targets 42% of electricity from renewable sources by 2035." data-ar="تستهدف مصر 42% من الكهرباء من مصادر متجددة بحلول عام 2035.">
+                            Egypt targets <strong>42%</strong> of electricity from renewable sources by <strong>2035</strong>.
+                        </span>
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="egyptChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-8">
+                <h3 class="text-2xl font-bold mb-4 text-emerald-700">
+                    <span data-en="Major Initiatives" data-ar="المبادرات الرئيسية">Major Initiatives</span>
+                </h3>
+                <ul class="space-y-4">
+                    <li>
+                        <strong class="text-lg" data-en="Hosting COP27 (2022):" data-ar="استضافة COP27 (2022):">Hosting COP27 (2022):</strong>
+                        <span class="text-gray-600" data-ar="في شرم الشيخ، مما وضع مصر في مركز الدبلوماسية المناخية العالمية." data-en="In Sharm El-Sheikh, placing Egypt at the center of global climate diplomacy.">
+                            In Sharm El-Sheikh, placing Egypt at the center of global climate diplomacy.
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Benban Solar Park:" data-ar="مجمع بنبان الشمسي:">Benban Solar Park:</strong>
+                        <span class="text-gray-600" data-en="One of the world's largest solar parks." data-ar="واحد من أكبر المجمعات الشمسية في العالم.">
+                            One of the world's largest solar parks.
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Green Hydrogen:" data-ar="الهيدروجين الأخضر:">Green Hydrogen:</strong>
+                        <span class="text-gray-600" data-en="Positioning as a regional hub with facilities in the Suez Canal Economic Zone." data-ar="التموضع كمركز إقليمي مع مرافق في المنطقة الاقتصادية لقناة السويس.">
+                            Positioning as a regional hub with facilities in the Suez Canal Economic Zone.
+                        </span>
+                    </li>
+                    <li>
+                        <strong class="text-lg" data-en="Carbon Footprint Verifiers Program:" data-ar="برنامج مدققي البصمة الكربونية:">Carbon Footprint Verifiers Program:</strong>
+                        <span class="text-gray-600" data-en="Training professionals on ISO 14064 standards to verify carbon footprints for CBAM compliance and export competitiveness." data-ar="تدريب المحترفين على معايير ISO 14064 للتحقق من البصمات الكربونية للامتثال لـ CBAM والقدرة التنافسية في التصدير.">
+                            Training professionals on ISO 14064 standards to verify carbon footprints for CBAM compliance and export competitiveness.
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 mt-12 border-t border-gray-200 bg-white bg-opacity-80">
+        <p class="text-gray-500">
+            <span data-en="Interactive Report on GHG & Carbon Footprinting • 2025" data-ar="تقرير تفاعلي عن الغازات الدفيئة والبصمة الكربونية • 2025">
+                Interactive Report on GHG & Carbon Footprinting • 2025
+            </span>
+        </p>
+    </footer>
+
+    <script>
+        // Language Management
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            const langSwitch = document.getElementById('langSwitch');
+            const html = document.documentElement;
+
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            langSwitch.classList.toggle('active');
+
+            // Update HTML attributes
+            html.lang = currentLang;
+            html.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+            // Update all text content
+            document.querySelectorAll('[data-en][data-ar]').forEach(el => {
+                const enText = el.getAttribute('data-en');
+                const arText = el.getAttribute('data-ar');
+
+                if (currentLang === 'ar') {
+                    el.textContent = arText;
+                    el.classList.remove('hidden');
+                } else {
+                    el.textContent = enText;
+                    el.classList.remove('hidden');
+                }
+            });
+
+            // Update mobile nav select options
+            const mobileNav = document.getElementById('mobile-nav');
+            if (mobileNav) {
+                Array.from(mobileNav.options).forEach(option => {
+                    const text = currentLang === 'ar' ? option.getAttribute('data-ar') : option.getAttribute('data-en');
+                    if (text) option.textContent = text;
+                });
+            }
+        }
+
+        // Audio Player Management
+        function toggleAudio(audioId) {
+            const audio = document.getElementById(audioId);
+            const playIcon = document.getElementById('playIcon' + audioId.slice(-2));
+            const pauseIcon = document.getElementById('pauseIcon' + audioId.slice(-2));
+            const progress = document.getElementById('progress' + audioId.slice(-2));
+
+            if (audio.paused) {
+                // Pause other audio
+                document.querySelectorAll('audio').forEach(a => {
+                    if (a.id !== audioId && !a.paused) {
+                        a.pause();
+                        document.getElementById('playIcon' + a.id.slice(-2)).classList.remove('hidden');
+                        document.getElementById('pauseIcon' + a.id.slice(-2)).classList.add('hidden');
+                    }
+                });
+
+                audio.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                audio.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+
+            // Update progress bar
+            audio.addEventListener('timeupdate', () => {
+                const percentage = (audio.currentTime / audio.duration) * 100;
+                progress.style.width = percentage + '%';
+            });
+
+            // Reset on end
+            audio.addEventListener('ended', () => {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                progress.style.width = '0%';
+            });
+        }
+
+        // Navigation Management
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNav = document.getElementById('mobile-nav');
+            const contentSections = document.querySelectorAll('.content-section');
+            const frameworkItems = document.querySelectorAll('.framework-item');
+            const frameworkPanels = document.querySelectorAll('.framework-content-panel');
+
+            function showSection(targetId) {
+                contentSections.forEach(section => section.classList.remove('active'));
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) targetSection.classList.add('active');
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.dataset.target === targetId) link.classList.add('active');
+                });
+
+                if (mobileNav && mobileNav.value !== targetId) {
+                    mobileNav.value = targetId;
+                }
+
+                // Scroll to top smoothly
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection(e.currentTarget.dataset.target);
+                });
+            });
+
+            if (mobileNav) {
+                mobileNav.addEventListener('change', (e) => {
+                    showSection(e.target.value);
+                });
+            }
+
+            frameworkItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.dataset.target;
+
+                    frameworkPanels.forEach(panel => panel.classList.remove('active'));
+                    const targetPanel = document.getElementById(targetId);
+                    if (targetPanel) targetPanel.classList.add('active');
+
+                    frameworkItems.forEach(i => i.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                });
+            });
+
+            initCharts();
+        });
+
+        // Chart Initialization
+        function initCharts() {
+            const chartOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 12, weight: 500 } } },
+                    tooltip: { enabled: true, mode: 'index', intersect: false }
+                }
+            };
+
+            // CO2 Chart
+            const co2Ctx = document.getElementById('co2Chart');
+            if (co2Ctx) {
+                new Chart(co2Ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1960', '1970', '1980', '1990', '2000', '2010', '2020', '2024'],
+                        datasets: [{
+                            label: 'Atmospheric CO₂ (ppm)',
+                            data: [317, 326, 339, 354, 369, 390, 414, 421],
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+
+            // Temperature Chart
+            const tempCtx = document.getElementById('tempChart');
+            if (tempCtx) {
+                new Chart(tempCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1880-1900', '1980s', '1990s', '2000s', '2010s', '2020-2024'],
+                        datasets: [{
+                            label: 'Global Temp Anomaly (°C)',
+                            data: [0, 0.26, 0.40, 0.62, 0.85, 1.15],
+                            backgroundColor: ['#3b82f6', '#f59e0b', '#f97316', '#ef4444', '#dc2626', '#991b1b'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: { ...chartOptions, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // Sector Emissions Chart
+            const sectorCtx = document.getElementById('sectorChart');
+            if (sectorCtx) {
+                new Chart(sectorCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Electricity & Heat', 'Industry', 'Agriculture', 'Transport', 'Buildings', 'Other'],
+                        datasets: [{
+                            label: '% of Global GHG Emissions',
+                            data: [31, 24, 22, 15, 6, 2],
+                            backgroundColor: ['#dc2626', '#7c3aed', '#059669', '#0284c7', '#db2777', '#6b7280'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: { ...chartOptions, indexAxis: 'y' }
+                });
+            }
+
+            // Refinery Emissions Chart
+            const refineryCtx = document.getElementById('refineryChart');
+            if (refineryCtx) {
+                new Chart(refineryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Process Heaters/Boilers', 'FCC Unit', 'Hydrogen Plant (SMR)', 'Flaring & Fugitives', 'Other'],
+                        datasets: [{
+                            data: [45, 25, 20, 5, 5],
+                            backgroundColor: ['#dc2626', '#f97316', '#7c3aed', '#6b7280', '#d1d5db'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+
+            // Egypt Renewable Target Chart
+            const egyptCtx = document.getElementById('egyptChart');
+            if (egyptCtx) {
+                new Chart(egyptCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Renewable Target 2035 (42%)', 'Current Renewables (~20%)', 'Gap to Target'],
+                        datasets: [{
+                            data: [42, 20, 22],
+                            backgroundColor: ['#059669', '#10b981', '#e5e7eb'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+        }
+    </script>
+</body>
+</html>
