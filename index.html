@@ -267,6 +267,31 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
+        /* Fix language switch in RTL */
+        [dir="rtl"] .lang-switch {
+            direction: ltr;
+        }
+
+        /* Mobile header improvements */
+        @media (max-width: 1024px) {
+            header .flex {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .mobile-header-row {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .mobile-nav-wrapper {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+        }
+
         .stat-number {
             font-size: 3rem;
             font-weight: 800;
@@ -321,57 +346,24 @@
 
     <header class="sticky top-0 z-50">
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0">
-                    <h1 class="text-2xl font-bold hero-title">
-                        <span data-en="GHG & Carbon Guide">GHG & Carbon Guide</span>
-                        <span data-ar="دليل الغازات الدفيئة والكربون" class="hidden">دليل الغازات الدفيئة والكربون</span>
-                    </h1>
-                </div>
-
-                <div class="hidden lg:flex items-center space-x-2 rtl:space-x-reverse">
-                    <a class="nav-link active" data-target="home">
-                        <span data-en="Home">Home</span>
-                        <span data-ar="الرئيسية" class="hidden">الرئيسية</span>
-                    </a>
-                    <a class="nav-link" data-target="science">
-                        <span data-en="The Science">The Science</span>
-                        <span data-ar="العلوم" class="hidden">العلوم</span>
-                    </a>
-                    <a class="nav-link" data-target="frameworks">
-                        <span data-en="Frameworks">Frameworks</span>
-                        <span data-ar="الأطر العالمية" class="hidden">الأطر العالمية</span>
-                    </a>
-                    <a class="nav-link" data-target="economics">
-                        <span data-en="Economics">Economics</span>
-                        <span data-ar="الاقتصاد" class="hidden">الاقتصاد</span>
-                    </a>
-                    <a class="nav-link" data-target="calculation">
-                        <span data-en="Calculation">Calculation</span>
-                        <span data-ar="الحسابات" class="hidden">الحسابات</span>
-                    </a>
-                    <a class="nav-link" data-target="petroleum">
-                        <span data-en="Petroleum">Petroleum</span>
-                        <span data-ar="النفط" class="hidden">النفط</span>
-                    </a>
-                    <a class="nav-link" data-target="egypt">
-                        <span data-en="Egypt">Egypt</span>
-                        <span data-ar="مصر" class="hidden">مصر</span>
-                    </a>
-                </div>
-
-                <div class="flex items-center gap-4">
+            <div class="flex items-center justify-between h-20 lg:h-auto lg:py-4">
+                <!-- Mobile: First Row -->
+                <div class="mobile-header-row lg:hidden">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold hero-title" data-en="GHG & Carbon Guide" data-ar="دليل الغازات الدفيئة والكربون">GHG & Carbon Guide</h1>
+                    </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium" id="lang-label-en">EN</span>
-                        <div class="lang-switch" id="langSwitch" onclick="toggleLanguage()">
+                        <span class="text-sm font-medium">EN</span>
+                        <div class="lang-switch" id="langSwitchMobile" onclick="toggleLanguage()">
                             <div class="lang-switch-button"></div>
                         </div>
-                        <span class="text-sm font-medium" id="lang-label-ar">AR</span>
+                        <span class="text-sm font-medium">AR</span>
                     </div>
                 </div>
 
-                <div class="lg:hidden">
-                    <select id="mobile-nav" class="mobile-nav-select">
+                <!-- Mobile: Second Row (Navigation) -->
+                <div class="mobile-nav-wrapper lg:hidden">
+                    <select id="mobile-nav" class="mobile-nav-select w-full">
                         <option value="home" data-en="Home" data-ar="الرئيسية">Home</option>
                         <option value="science" data-en="The Science" data-ar="العلوم">The Science</option>
                         <option value="frameworks" data-en="Frameworks" data-ar="الأطر العالمية">Frameworks</option>
@@ -380,6 +372,31 @@
                         <option value="petroleum" data-en="Petroleum" data-ar="النفط">Petroleum</option>
                         <option value="egypt" data-en="Egypt" data-ar="مصر">Egypt</option>
                     </select>
+                </div>
+
+                <!-- Desktop: All in One Row -->
+                <div class="hidden lg:flex w-full items-center justify-between">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold hero-title" data-en="GHG & Carbon Guide" data-ar="دليل الغازات الدفيئة والكربون">GHG & Carbon Guide</h1>
+                    </div>
+
+                    <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                        <a class="nav-link active" data-target="home" data-en="Home" data-ar="الرئيسية">Home</a>
+                        <a class="nav-link" data-target="science" data-en="The Science" data-ar="العلوم">The Science</a>
+                        <a class="nav-link" data-target="frameworks" data-en="Frameworks" data-ar="الأطر العالمية">Frameworks</a>
+                        <a class="nav-link" data-target="economics" data-en="Economics" data-ar="الاقتصاد">Economics</a>
+                        <a class="nav-link" data-target="calculation" data-en="Calculation" data-ar="الحسابات">Calculation</a>
+                        <a class="nav-link" data-target="petroleum" data-en="Petroleum" data-ar="النفط">Petroleum</a>
+                        <a class="nav-link" data-target="egypt" data-en="Egypt" data-ar="مصر">Egypt</a>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">EN</span>
+                        <div class="lang-switch" id="langSwitch" onclick="toggleLanguage()">
+                            <div class="lang-switch-button"></div>
+                        </div>
+                        <span class="text-sm font-medium">AR</span>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -1029,10 +1046,14 @@
 
         function toggleLanguage() {
             const langSwitch = document.getElementById('langSwitch');
+            const langSwitchMobile = document.getElementById('langSwitchMobile');
             const html = document.documentElement;
 
             currentLang = currentLang === 'en' ? 'ar' : 'en';
-            langSwitch.classList.toggle('active');
+
+            // Toggle both switches
+            if (langSwitch) langSwitch.classList.toggle('active');
+            if (langSwitchMobile) langSwitchMobile.classList.toggle('active');
 
             // Update HTML attributes
             html.lang = currentLang;
@@ -1045,10 +1066,8 @@
 
                 if (currentLang === 'ar') {
                     el.textContent = arText;
-                    el.classList.remove('hidden');
                 } else {
                     el.textContent = enText;
-                    el.classList.remove('hidden');
                 }
             });
 
@@ -1222,7 +1241,18 @@
                             borderRadius: 8
                         }]
                     },
-                    options: { ...chartOptions, indexAxis: 'y' }
+                    options: {
+                        ...chartOptions,
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 35
+                            }
+                        }
+                    }
                 });
             }
 
